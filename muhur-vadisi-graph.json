@@ -1,0 +1,1649 @@
+{
+  "version": 1,
+  "project": "Mühür Vadisi",
+  "runtime_concurrency": 1,
+  "maximum_logical_agents": 7,
+  "agents": {
+    "coordinator": {
+      "instructions": ".agents/skills/muhur-coordinator/SKILL.md"
+    },
+    "world": {
+      "instructions": ".agents/skills/muhur-world/SKILL.md"
+    },
+    "render": {
+      "instructions": ".agents/skills/muhur-render/SKILL.md"
+    },
+    "combat": {
+      "instructions": ".agents/skills/muhur-combat/SKILL.md"
+    },
+    "content": {
+      "instructions": ".agents/skills/muhur-content/SKILL.md"
+    },
+    "ui": {
+      "instructions": ".agents/skills/muhur-ui/SKILL.md"
+    },
+    "qa": {
+      "instructions": ".agents/skills/muhur-qa/SKILL.md"
+    }
+  },
+  "nodes": [
+    {
+      "id": "G00",
+      "title": "Vite/TypeScript/Three.js ve test başlangıcı",
+      "agent": "coordinator",
+      "review_agent": "qa",
+      "depends_on": [],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/BRIEF.md",
+        "docs/GAUNTLET.md"
+      ],
+      "scope": [
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json",
+        "tsconfig.app.json",
+        "tsconfig.node.json",
+        "vite.config.ts",
+        "vitest.config.ts",
+        "playwright.config.ts",
+        "eslint.config.js",
+        "index.html",
+        "src/main.ts",
+        "src/style.css",
+        "src/vite-env.d.ts",
+        "tests/setup",
+        "tests/unit/bootstrap.test.ts"
+      ],
+      "acceptance": [
+        "Vite+TypeScript+Three.js uyumlu güncel sürümlerini resmi kaynaklardan doğrula ve lockfile oluştur.",
+        "Vitest,Playwright,ESLint ve fake-indexeddb test bağımlılıklarını bu node içinde kur;sonraki node root dependency değiştirmez.",
+        "npm dev/build/typecheck/lint/test/test:e2e/test:property/bench komutlarını gerçek araçlara bağla. test boş suite ile başarılı olmasın.",
+        "İlk çalışan WebGL sahnesi ve gerçek assertion içeren bootstrap testi; henüz oyun tamamlandı deme.",
+        "Playwright webServer ve raporları .reports veya .loop altında yapılandır; gate kaynaklara dosya yazmasın."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/BRIEF.md, docs/GAUNTLET.md.\nDeliver: Vite/TypeScript/Three.js ve test başlangıcı\nAcceptance requirements:\n- Vite+TypeScript+Three.js uyumlu güncel sürümlerini resmi kaynaklardan doğrula ve lockfile oluştur.\n- Vitest,Playwright,ESLint ve fake-indexeddb test bağımlılıklarını bu node içinde kur;sonraki node root dependency değiştirmez.\n- npm dev/build/typecheck/lint/test/test:e2e/test:property/bench komutlarını gerçek araçlara bağla. test boş suite ile başarılı olmasın.\n- İlk çalışan WebGL sahnesi ve gerçek assertion içeren bootstrap testi; henüz oyun tamamlandı deme.\n- Playwright webServer ve raporları .reports veya .loop altında yapılandır; gate kaynaklara dosya yazmasın.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "script-contract",
+          "argv": [
+            "python3",
+            "tooling/verify_scripts.py"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "lint",
+          "argv": [
+            "npm",
+            "run",
+            "lint"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/unit/bootstrap.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/unit/bootstrap.test.ts"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "build",
+          "argv": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "G01",
+      "title": "Ortak tipler, command bus ve oyun durumları",
+      "agent": "coordinator",
+      "review_agent": "qa",
+      "depends_on": [
+        "G00"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/COMBAT.md",
+        "docs/WORLD.md"
+      ],
+      "scope": [
+        "src/contracts",
+        "src/config.ts",
+        "src/app/state.ts",
+        "tests/contracts"
+      ],
+      "acceptance": [
+        "XZ/timestep/biome ID ve state discriminated union tek kaynakta.",
+        "Input owner world/panel/battle ayrımı, commandId ve state transition sözleşmeleri gerçek testli."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/COMBAT.md, docs/WORLD.md.\nDeliver: Ortak tipler, command bus ve oyun durumları\nAcceptance requirements:\n- XZ/timestep/biome ID ve state discriminated union tek kaynakta.\n- Input owner world/panel/battle ayrımı, commandId ve state transition sözleşmeleri gerçek testli.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/contracts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/contracts"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "G02",
+      "title": "Sürümlü IndexedDB ve transaction ledger",
+      "agent": "coordinator",
+      "review_agent": "qa",
+      "depends_on": [
+        "G01"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/COMBAT.md",
+        "docs/CONTENT.md"
+      ],
+      "scope": [
+        "src/game/save",
+        "tests/save",
+        "tests/e2e/save-adapter.spec.ts"
+      ],
+      "acceptance": [
+        "SavePort atomic transaction, commandId ledger, backup/export ve version migration uygula.",
+        "Fault injection tamamen önce/sonra state; kota/bozuk save açıklanır, sessiz silme yok.",
+        "IndexedDB davranışı gerçek browserda doğrulanır; fake IDB tek başına kanıt değil."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/COMBAT.md, docs/CONTENT.md.\nDeliver: Sürümlü IndexedDB ve transaction ledger\nAcceptance requirements:\n- SavePort atomic transaction, commandId ledger, backup/export ve version migration uygula.\n- Fault injection tamamen önce/sonra state; kota/bozuk save açıklanır, sessiz silme yok.\n- IndexedDB davranışı gerçek browserda doğrulanır; fake IDB tek başına kanıt değil.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/save",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/save"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/e2e/save-adapter.spec.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/save-adapter.spec.ts"
+          ],
+          "timeout": 300
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "A01",
+      "title": "Tür, materyal ve tarif kataloğu",
+      "agent": "content",
+      "review_agent": "qa",
+      "depends_on": [
+        "G01"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/CONTENT.md",
+        "design/catalog.seed.json"
+      ],
+      "scope": [
+        "src/content/catalog.ts",
+        "src/content/schema.ts",
+        "tests/content/catalog.test.ts"
+      ],
+      "acceptance": [
+        "16 özgün tür,8 biyom,25 materyal+8 ürün ve8 kullanılabilir tarif şemadan geçer.",
+        "Bütün kimlik/recipe/biome referansları geçerli; savaş formülü COMBAT sözleşmesinden gelir."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/CONTENT.md, design/catalog.seed.json.\nDeliver: Tür, materyal ve tarif kataloğu\nAcceptance requirements:\n- 16 özgün tür,8 biyom,25 materyal+8 ürün ve8 kullanılabilir tarif şemadan geçer.\n- Bütün kimlik/recipe/biome referansları geçerli; savaş formülü COMBAT sözleşmesinden gelir.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/content/catalog.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/content/catalog.test.ts"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "A02",
+      "title": "Özgün SVG ön/arka yaratık ve item varlıkları",
+      "agent": "content",
+      "review_agent": "qa",
+      "depends_on": [
+        "A01"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/CONTENT.md"
+      ],
+      "scope": [
+        "public/assets",
+        "src/content/asset-manifest.ts",
+        "tests/content/assets.test.ts"
+      ],
+      "acceptance": [
+        "16 türün gerçekten farklı ön/arka görünümü,8 yumurta ve33 item SVG ikonu oluştur.",
+        "Dış URL/script içermeyen parse edilebilir SVG, manifestte eksik yol yok; temas sayfası .reports altında.",
+        "Pokémon/LoL varlığı veya markalı tasarım kopyası yok."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/CONTENT.md.\nDeliver: Özgün SVG ön/arka yaratık ve item varlıkları\nAcceptance requirements:\n- 16 türün gerçekten farklı ön/arka görünümü,8 yumurta ve33 item SVG ikonu oluştur.\n- Dış URL/script içermeyen parse edilebilir SVG, manifestte eksik yol yok; temas sayfası .reports altında.\n- Pokémon/LoL varlığı veya markalı tasarım kopyası yok.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/content/assets.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/content/assets.test.ts"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "build",
+          "argv": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "A03",
+      "title": "Atomik simya ve kampta item kullanımı",
+      "agent": "content",
+      "review_agent": "qa",
+      "depends_on": [
+        "A01",
+        "G02"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/CONTENT.md",
+        "docs/COMBAT.md"
+      ],
+      "scope": [
+        "src/content/alchemy.ts",
+        "src/content/camp-use.ts",
+        "tests/content/alchemy.test.ts"
+      ],
+      "acceptance": [
+        "8 MVP tarif üretilebilir; yetersiz kaynak/dolu çanta/geçersiz hedefte tüketim yok.",
+        "Camp heal/revive/heat-herb conversion ve seal üretimi commandId ile tekilleşir.",
+        "Aynı komut50 tekrar tek üretim; tam HP hedefinde ilaç tüketilmez."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/CONTENT.md, docs/COMBAT.md.\nDeliver: Atomik simya ve kampta item kullanımı\nAcceptance requirements:\n- 8 MVP tarif üretilebilir; yetersiz kaynak/dolu çanta/geçersiz hedefte tüketim yok.\n- Camp heal/revive/heat-herb conversion ve seal üretimi commandId ile tekilleşir.\n- Aynı komut50 tekrar tek üretim; tam HP hedefinde ilaç tüketilmez.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/content/alchemy.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/content/alchemy.test.ts"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "W01",
+      "title": "Bağlı8 biyom ve deterministik terrain",
+      "agent": "world",
+      "review_agent": "qa",
+      "depends_on": [
+        "G01",
+        "A01"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/WORLD.md"
+      ],
+      "scope": [
+        "src/world/generation",
+        "src/world/terrain",
+        "tests/world/generation.test.ts"
+      ],
+      "acceptance": [
+        "2048m dünya,64m chunk,8 makro bölge ve güvenli40m kamp.",
+        "20 sabit seed tüm zorunlu kara girişlerine yol bulur; terrain chunk sırasından bağımsız.",
+        "Başlangıç yumurtaları ve zayıf türler erişilebilir; tehlike başlangıca taşmaz."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/WORLD.md.\nDeliver: Bağlı8 biyom ve deterministik terrain\nAcceptance requirements:\n- 2048m dünya,64m chunk,8 makro bölge ve güvenli40m kamp.\n- 20 sabit seed tüm zorunlu kara girişlerine yol bulur; terrain chunk sırasından bağımsız.\n- Başlangıç yumurtaları ve zayıf türler erişilebilir; tehlike başlangıca taşmaz.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/world/generation.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/world/generation.test.ts"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "R01",
+      "title": "WebGL sahnesi ve takip kamera",
+      "agent": "render",
+      "review_agent": "qa",
+      "depends_on": [
+        "G01"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/RENDER.md"
+      ],
+      "scope": [
+        "src/render/core",
+        "src/render/camera",
+        "src/render/input",
+        "tests/render/camera.test.ts"
+      ],
+      "acceptance": [
+        "OrthographicCamera, player yaw, resize ve projection matrix; camera kuzey yönelimini korur.",
+        "Fixed timestep adapter5substep ve blur temizliği; gameplay RNG renderdan bağımsız.",
+        "Kamera damping 30/60/120fps testinde tutarlı."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/RENDER.md.\nDeliver: WebGL sahnesi ve takip kamera\nAcceptance requirements:\n- OrthographicCamera, player yaw, resize ve projection matrix; camera kuzey yönelimini korur.\n- Fixed timestep adapter5substep ve blur temizliği; gameplay RNG renderdan bağımsız.\n- Kamera damping 30/60/120fps testinde tutarlı.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/render/camera.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/render/camera.test.ts"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "build",
+          "argv": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "W02",
+      "title": "Hareket, collision ve erişim",
+      "agent": "world",
+      "review_agent": "qa",
+      "depends_on": [
+        "W01",
+        "R01"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/WORLD.md"
+      ],
+      "scope": [
+        "src/world/movement",
+        "src/world/collision",
+        "tests/world/movement.test.ts"
+      ],
+      "acceptance": [
+        "WASD/oklar, çapraz normalize, dört yön dönüş; duvar boyunca kayma.",
+        "Derin su/lav/katı engel geçilmez,NaN yok; pause/battle/blur karakteri durdurur.",
+        "30/60/120fps10sn input replay mesafe farkı yüzde1 altında."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/WORLD.md.\nDeliver: Hareket, collision ve erişim\nAcceptance requirements:\n- WASD/oklar, çapraz normalize, dört yön dönüş; duvar boyunca kayma.\n- Derin su/lav/katı engel geçilmez,NaN yok; pause/battle/blur karakteri durdurur.\n- 30/60/120fps10sn input replay mesafe farkı yüzde1 altında.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/world/movement.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/world/movement.test.ts"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "W03",
+      "title": "Encounter, keşif ve minimap verisi",
+      "agent": "world",
+      "review_agent": "qa",
+      "depends_on": [
+        "W02",
+        "A01"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/WORLD.md"
+      ],
+      "scope": [
+        "src/world/encounters",
+        "src/world/discovery",
+        "src/world/minimap-data.ts",
+        "tests/world/encounters.test.ts"
+      ],
+      "acceptance": [
+        "6m etkileşim/8m bırakma histerezisi,24m görünür yakınlık; engel arkasında battle yok.",
+        "Tek encounter kilidi, hostile1.2s uyarı, kamp güvenliği ve hedef kararlılığı.",
+        "World→minimap dört yön/clip; keşfedilmemiş hedef ifşa olmaz."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/WORLD.md.\nDeliver: Encounter, keşif ve minimap verisi\nAcceptance requirements:\n- 6m etkileşim/8m bırakma histerezisi,24m görünür yakınlık; engel arkasında battle yok.\n- Tek encounter kilidi, hostile1.2s uyarı, kamp güvenliği ve hedef kararlılığı.\n- World→minimap dört yön/clip; keşfedilmemiş hedef ifşa olmaz.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/world/encounters.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/world/encounters.test.ts"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "C01",
+      "title": "Saf deterministik savaş çekirdeği",
+      "agent": "combat",
+      "review_agent": "qa",
+      "depends_on": [
+        "G01",
+        "A01"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/COMBAT.md"
+      ],
+      "scope": [
+        "src/game/combat",
+        "tests/combat/core.test.ts"
+      ],
+      "acceptance": [
+        "Seed ve komut replay aynı final state; geçersiz/tekrar komut RNG tüketmez.",
+        "4 slotun stamina/seviye kilidi ve düşman AI; HP clamp ve terminal turn guard.",
+        "İsabet/hasar ve guard sırası COMBAT formülleriyle boundary testli."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/COMBAT.md.\nDeliver: Saf deterministik savaş çekirdeği\nAcceptance requirements:\n- Seed ve komut replay aynı final state; geçersiz/tekrar komut RNG tüketmez.\n- 4 slotun stamina/seviye kilidi ve düşman AI; HP clamp ve terminal turn guard.\n- İsabet/hasar ve guard sırası COMBAT formülleriyle boundary testli.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/combat/core.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/combat/core.test.ts"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "C02",
+      "title": "Yakalama, yumurta, XP ve tekil ödül",
+      "agent": "combat",
+      "review_agent": "qa",
+      "depends_on": [
+        "C01",
+        "G02",
+        "A03"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/COMBAT.md",
+        "docs/CONTENT.md"
+      ],
+      "scope": [
+        "src/game/combat",
+        "src/game/progression.ts",
+        "tests/combat/rewards.test.ts"
+      ],
+      "acceptance": [
+        "HP<=.35 yakalama sınırı; canlı hedef/mühür/depo koşulları; gagalarda kaynak tüketimi yok.",
+        "50 replay tek ödül/yaratık; loot ve XP farklı win/capture kurallarına bağlı.",
+        "Yumurta120sn aktif dünya+heat_herb; cracking atomic; XP çoklu level30cap testli.",
+        "Dolu çantada zafer loot teslim kutusuna gider; kaybetme/kaçış XP vermez."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/COMBAT.md, docs/CONTENT.md.\nDeliver: Yakalama, yumurta, XP ve tekil ödül\nAcceptance requirements:\n- HP<=.35 yakalama sınırı; canlı hedef/mühür/depo koşulları; gagalarda kaynak tüketimi yok.\n- 50 replay tek ödül/yaratık; loot ve XP farklı win/capture kurallarına bağlı.\n- Yumurta120sn aktif dünya+heat_herb; cracking atomic; XP çoklu level30cap testli.\n- Dolu çantada zafer loot teslim kutusuna gider; kaybetme/kaçış XP vermez.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/combat/rewards.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/combat/rewards.test.ts"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "W04",
+      "title": "Chunk state ve kalıcı dünya",
+      "agent": "world",
+      "review_agent": "qa",
+      "depends_on": [
+        "W03",
+        "G02",
+        "C02"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/WORLD.md"
+      ],
+      "scope": [
+        "src/world/chunks",
+        "src/world/persistence",
+        "tests/world/lifecycle.test.ts"
+      ],
+      "acceptance": [
+        "Aktif25görsel/9sim chunk verisi; consumed entity chunk reload ile geri dönmez.",
+        "Kabul/yenilgi/kaçış konumu ve cooldownları tutarlı; save error hareketi açmaz."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/WORLD.md.\nDeliver: Chunk state ve kalıcı dünya\nAcceptance requirements:\n- Aktif25görsel/9sim chunk verisi; consumed entity chunk reload ile geri dönmez.\n- Kabul/yenilgi/kaçış konumu ve cooldownları tutarlı; save error hareketi açmaz.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/world/lifecycle.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/world/lifecycle.test.ts"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "R02",
+      "title": "Biyom çizimi ve instanced kaynaklar",
+      "agent": "render",
+      "review_agent": "qa",
+      "depends_on": [
+        "R01",
+        "W04",
+        "A02"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/RENDER.md",
+        "docs/WORLD.md"
+      ],
+      "scope": [
+        "src/render/terrain",
+        "src/render/chunks",
+        "src/render/resources",
+        "src/render/entities",
+        "tests/render/chunks.test.ts"
+      ],
+      "acceptance": [
+        "Aktif25+cache24 üst sınırı; stale worker sonucu generation token ile elenir.",
+        "Ağaç/taş/çalı instancing;8 biyom farklı doku/siluet; aynı materyaller paylaşılır.",
+        "Unload disposal/refcount; tekrar mount listener veya GPU kaynağı büyütmez."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/RENDER.md, docs/WORLD.md.\nDeliver: Biyom çizimi ve instanced kaynaklar\nAcceptance requirements:\n- Aktif25+cache24 üst sınırı; stale worker sonucu generation token ile elenir.\n- Ağaç/taş/çalı instancing;8 biyom farklı doku/siluet; aynı materyaller paylaşılır.\n- Unload disposal/refcount; tekrar mount listener veya GPU kaynağı büyütmez.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/render/chunks.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/render/chunks.test.ts"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "build",
+          "argv": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "U01",
+      "title": "HUD, yuvarlak minimap ve büyük hedef kartı",
+      "agent": "ui",
+      "review_agent": "qa",
+      "depends_on": [
+        "W03",
+        "R01",
+        "A02"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/UI.md",
+        "docs/WORLD.md"
+      ],
+      "scope": [
+        "src/ui/hud",
+        "src/ui/minimap",
+        "src/ui/encounter",
+        "tests/ui/minimap.test.ts"
+      ],
+      "acceptance": [
+        "Solalt192/144px daire,96m yarıçap,kuzeyyukarı ve player oku.",
+        "Yakın yumurta/yaratık büyük SVG+isim+level+Enter; fog ve clipping uyumlu.",
+        "UI girdisi world intent üzerinden bağlanır; testler model koordinatını doğrular."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/UI.md, docs/WORLD.md.\nDeliver: HUD, yuvarlak minimap ve büyük hedef kartı\nAcceptance requirements:\n- Solalt192/144px daire,96m yarıçap,kuzeyyukarı ve player oku.\n- Yakın yumurta/yaratık büyük SVG+isim+level+Enter; fog ve clipping uyumlu.\n- UI girdisi world intent üzerinden bağlanır; testler model koordinatını doğrular.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/ui/minimap.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/ui/minimap.test.ts"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "build",
+          "argv": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "C03",
+      "title": "Dünya-savaş transition adapter",
+      "agent": "combat",
+      "review_agent": "qa",
+      "depends_on": [
+        "C02",
+        "W04"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/COMBAT.md",
+        "docs/WORLD.md"
+      ],
+      "scope": [
+        "src/game/encounter-adapter.ts",
+        "tests/combat/transitions.test.ts"
+      ],
+      "acceptance": [
+        "Explore→encounter→battle→commit→explore/Recovery akışı tek command üzerinden.",
+        "Panel animasyonu aynı eylemi ikinci kez göndermez; save fail sonrası world açılmaz.",
+        "Battle UI bu node scopeunda değildir; adapter UI U02 tarafından tüketilir."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/COMBAT.md, docs/WORLD.md.\nDeliver: Dünya-savaş transition adapter\nAcceptance requirements:\n- Explore→encounter→battle→commit→explore/Recovery akışı tek command üzerinden.\n- Panel animasyonu aynı eylemi ikinci kez göndermez; save fail sonrası world açılmaz.\n- Battle UI bu node scopeunda değildir; adapter UI U02 tarafından tüketilir.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/combat/transitions.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/combat/transitions.test.ts"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "U02",
+      "title": "Battle page ve yakalama arayüzü",
+      "agent": "ui",
+      "review_agent": "qa",
+      "depends_on": [
+        "U01",
+        "C03",
+        "A02"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/UI.md",
+        "docs/COMBAT.md"
+      ],
+      "scope": [
+        "src/ui/battle",
+        "tests/ui/battle.test.ts"
+      ],
+      "acceptance": [
+        "Dost arka/rakip ön SVG;4 slot seviye/stamina durumunu gösterir;HP yüzde35 işareti.",
+        "Klavye1–4/C/Escape ve pointer aynı command bus;animasyon sırasında çifte action yok.",
+        "Yakalarken formül UI kopyası yok;domain sonucu HP ve loga yansır."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/UI.md, docs/COMBAT.md.\nDeliver: Battle page ve yakalama arayüzü\nAcceptance requirements:\n- Dost arka/rakip ön SVG;4 slot seviye/stamina durumunu gösterir;HP yüzde35 işareti.\n- Klavye1–4/C/Escape ve pointer aynı command bus;animasyon sırasında çifte action yok.\n- Yakalarken formül UI kopyası yok;domain sonucu HP ve loga yansır.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/ui/battle.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/ui/battle.test.ts"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "build",
+          "argv": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "U03",
+      "title": "Grid envanter, simya ve kamp panelleri",
+      "agent": "ui",
+      "review_agent": "qa",
+      "depends_on": [
+        "U02",
+        "A03"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/UI.md",
+        "docs/CONTENT.md"
+      ],
+      "scope": [
+        "src/ui/inventory",
+        "src/ui/alchemy",
+        "src/ui/camp",
+        "tests/ui/alchemy.test.ts"
+      ],
+      "acceptance": [
+        "6sütun grid,stack,filtre,tooltip,tarif malzemesi ve craft önizleme.",
+        "8tarif üretimi/kamp use HP önizlemesi ve yumurta kuluçka;reject state kaynak tüketmez.",
+        "Focus trap/Escape/return focus;panel açıkken world movement ve aggro kapalı."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/UI.md, docs/CONTENT.md.\nDeliver: Grid envanter, simya ve kamp panelleri\nAcceptance requirements:\n- 6sütun grid,stack,filtre,tooltip,tarif malzemesi ve craft önizleme.\n- 8tarif üretimi/kamp use HP önizlemesi ve yumurta kuluçka;reject state kaynak tüketmez.\n- Focus trap/Escape/return focus;panel açıkken world movement ve aggro kapalı.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/ui/alchemy.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/ui/alchemy.test.ts"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "build",
+          "argv": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "G03",
+      "title": "Bütün modülleri oynanabilir döngüye bağla",
+      "agent": "coordinator",
+      "review_agent": "qa",
+      "depends_on": [
+        "U03",
+        "R02",
+        "C03"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/ARCHITECTURE.md",
+        "docs/UI.md",
+        "docs/COMBAT.md"
+      ],
+      "scope": [
+        "src/app",
+        "src/main.ts",
+        "src/style.css",
+        "tests/integration"
+      ],
+      "acceptance": [
+        "Boot/save load→gezinti→yumurta→savaş→yakalama→XP→simya→save/load gerçek modüllerle bağlı.",
+        "Tek oyuncu spawn ve starter level2;50m yürünebilir ilk hedefe öğretici ipucu.",
+        "Başlangıçtaki demo sahne kaldırılır;kaynak disposal ve hot reload temizliği."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/ARCHITECTURE.md, docs/UI.md, docs/COMBAT.md.\nDeliver: Bütün modülleri oynanabilir döngüye bağla\nAcceptance requirements:\n- Boot/save load→gezinti→yumurta→savaş→yakalama→XP→simya→save/load gerçek modüllerle bağlı.\n- Tek oyuncu spawn ve starter level2;50m yürünebilir ilk hedefe öğretici ipucu.\n- Başlangıçtaki demo sahne kaldırılır;kaynak disposal ve hot reload temizliği.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "lint",
+          "argv": [
+            "npm",
+            "run",
+            "lint"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/integration",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/integration"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "build",
+          "argv": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "C04",
+      "title": "Savaş ve save adversarial regresyon",
+      "agent": "combat",
+      "review_agent": "qa",
+      "depends_on": [
+        "G03"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/COMBAT.md",
+        "docs/GAUNTLET.md"
+      ],
+      "scope": [
+        "tests/combat/persistence.test.ts",
+        "tests/e2e/battle-reload.spec.ts",
+        "src/game/combat",
+        "src/game/save"
+      ],
+      "acceptance": [
+        "Her battle phase reload,çift command,fault injection,fullbox,defeat/flee testleri.",
+        "Eski save migrate veya açıklayıcı hata;oyuncu varlığı ve item/XP çoğalmaz."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/COMBAT.md, docs/GAUNTLET.md.\nDeliver: Savaş ve save adversarial regresyon\nAcceptance requirements:\n- Her battle phase reload,çift command,fault injection,fullbox,defeat/flee testleri.\n- Eski save migrate veya açıklayıcı hata;oyuncu varlığı ve item/XP çoğalmaz.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "tests/combat/persistence.test.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/combat/persistence.test.ts"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "tests/e2e/battle-reload.spec.ts",
+          "argv": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/battle-reload.spec.ts"
+          ],
+          "timeout": 300
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "Q01",
+      "title": "Gerçek WebGL uçtan uca gauntlet",
+      "agent": "qa",
+      "review_agent": "coordinator",
+      "depends_on": [
+        "G03",
+        "C04"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/GAUNTLET.md"
+      ],
+      "scope": [
+        "tests/e2e",
+        "tests/qa",
+        "tests/property",
+        "playwright.config.ts",
+        "src/app/test-bridge.ts"
+      ],
+      "acceptance": [
+        "Gerçek browser WebGL hareket/minimap/Enter/4slot/capture/inventory8craft/save-load akışları.",
+        "20seed connectivity+100seed property;8biyom screenshot;asset güvenlik ve özgünlük review.",
+        "test bridge productionda devre dışı;fake DOM pass renderer kanıtı yerine geçmez.",
+        "Çıktılar .loop/evidence veya .reports;capture/no-artifact ile başarı uydurma."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/GAUNTLET.md.\nDeliver: Gerçek WebGL uçtan uca gauntlet\nAcceptance requirements:\n- Gerçek browser WebGL hareket/minimap/Enter/4slot/capture/inventory8craft/save-load akışları.\n- 20seed connectivity+100seed property;8biyom screenshot;asset güvenlik ve özgünlük review.\n- test bridge productionda devre dışı;fake DOM pass renderer kanıtı yerine geçmez.\n- Çıktılar .loop/evidence veya .reports;capture/no-artifact ile başarı uydurma.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "test:property",
+          "argv": [
+            "npm",
+            "run",
+            "test:property"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "test:e2e",
+          "argv": [
+            "npm",
+            "run",
+            "test:e2e"
+          ],
+          "timeout": 600
+        },
+        {
+          "id": "build",
+          "argv": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "R03",
+      "title": "Three.js fiziksel cihaz performansı",
+      "agent": "render",
+      "review_agent": "qa",
+      "depends_on": [
+        "Q01",
+        "R02"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/RENDER.md",
+        "docs/GAUNTLET.md"
+      ],
+      "scope": [
+        "src/render",
+        "tests/performance",
+        "src/app/telemetry.ts"
+      ],
+      "acceptance": [
+        "M1ref3×120s10s warmup p95<=20/p99<=33.4ms;draw<=150tri<=300k;query<=2/tick<=4ms.",
+        "20chunk cycle resource sayıları bounded;context loss recovery ve dispose testli.",
+        "Donanım yoksa ölçüm NOT_MEASURED;software GPU raporu referans gate yerine geçmez."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/RENDER.md, docs/GAUNTLET.md.\nDeliver: Three.js fiziksel cihaz performansı\nAcceptance requirements:\n- M1ref3×120s10s warmup p95<=20/p99<=33.4ms;draw<=150tri<=300k;query<=2/tick<=4ms.\n- 20chunk cycle resource sayıları bounded;context loss recovery ve dispose testli.\n- Donanım yoksa ölçüm NOT_MEASURED;software GPU raporu referans gate yerine geçmez.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "bench",
+          "argv": [
+            "npm",
+            "run",
+            "bench"
+          ],
+          "timeout": 600
+        },
+        {
+          "id": "build",
+          "argv": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "timeout": 180
+        }
+      ],
+      "max_attempts": 3
+    },
+    {
+      "id": "Q02",
+      "title": "Kanıt birleştirme ve100puan release değerlendirmesi",
+      "agent": "qa",
+      "review_agent": "coordinator",
+      "depends_on": [
+        "R03"
+      ],
+      "context": [
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/GAUNTLET.md",
+        "qa/SCORECARD.json"
+      ],
+      "scope": [
+        "tests/qa",
+        "tests/release"
+      ],
+      "acceptance": [
+        "Güncel HEAD ve source_sha256 bağlanmış evidence.json üret;hard gate raporlarına gerçek artifact yolları.",
+        "7ölçüt gerekçeleri gerçek sonuçlarla scorelanır;herkriter>=60 ve toplam>=85 gerekli.",
+        "Eksik gate/fingerprint mismatch score null/FAIL;test başarısızlığını ortalamayla gizleme.",
+        "Rapor .loop/evidence/evidence.json;yayın veya deployment yapma."
+      ],
+      "prompt": "Read these project documents before implementation: docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/GAUNTLET.md, qa/SCORECARD.json.\nDeliver: Kanıt birleştirme ve100puan release değerlendirmesi\nAcceptance requirements:\n- Güncel HEAD ve source_sha256 bağlanmış evidence.json üret;hard gate raporlarına gerçek artifact yolları.\n- 7ölçüt gerekçeleri gerçek sonuçlarla scorelanır;herkriter>=60 ve toplam>=85 gerekli.\n- Eksik gate/fingerprint mismatch score null/FAIL;test başarısızlığını ortalamayla gizleme.\n- Rapor .loop/evidence/evidence.json;yayın veya deployment yapma.\nDo not change design/engine/scorer or weaken tests. Report actual files/tests and blockers.",
+      "gates": [
+        {
+          "id": "typecheck",
+          "argv": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "lint",
+          "argv": [
+            "npm",
+            "run",
+            "lint"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "test:property",
+          "argv": [
+            "npm",
+            "run",
+            "test:property"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "test:e2e",
+          "argv": [
+            "npm",
+            "run",
+            "test:e2e"
+          ],
+          "timeout": 600
+        },
+        {
+          "id": "build",
+          "argv": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "timeout": 180
+        },
+        {
+          "id": "evidence-collector",
+          "argv": [
+            "npm",
+            "run",
+            "test",
+            "--",
+            "--run",
+            "tests/release"
+          ],
+          "timeout": 300
+        },
+        {
+          "id": "measured-score",
+          "argv": [
+            "python3",
+            "qa/score_current.py"
+          ],
+          "timeout": 30
+        }
+      ],
+      "max_attempts": 3
+    }
+  ],
+  "edges": [
+    {
+      "from": "G00",
+      "to": "G01",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "G01",
+      "to": "G02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "G01",
+      "to": "A01",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "A01",
+      "to": "A02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "A01",
+      "to": "A03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "G02",
+      "to": "A03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "G01",
+      "to": "W01",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "A01",
+      "to": "W01",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "G01",
+      "to": "R01",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "W01",
+      "to": "W02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "R01",
+      "to": "W02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "W02",
+      "to": "W03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "A01",
+      "to": "W03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "G01",
+      "to": "C01",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "A01",
+      "to": "C01",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "C01",
+      "to": "C02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "G02",
+      "to": "C02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "A03",
+      "to": "C02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "W03",
+      "to": "W04",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "G02",
+      "to": "W04",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "C02",
+      "to": "W04",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "R01",
+      "to": "R02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "W04",
+      "to": "R02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "A02",
+      "to": "R02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "W03",
+      "to": "U01",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "R01",
+      "to": "U01",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "A02",
+      "to": "U01",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "C02",
+      "to": "C03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "W04",
+      "to": "C03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "U01",
+      "to": "U02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "C03",
+      "to": "U02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "A02",
+      "to": "U02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "U02",
+      "to": "U03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "A03",
+      "to": "U03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "U03",
+      "to": "G03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "R02",
+      "to": "G03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "C03",
+      "to": "G03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "G03",
+      "to": "C04",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "G03",
+      "to": "Q01",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "C04",
+      "to": "Q01",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "Q01",
+      "to": "R03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "R02",
+      "to": "R03",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    },
+    {
+      "from": "R03",
+      "to": "Q02",
+      "kind": "requires",
+      "artifact_contract": "See predecessor acceptance and scope"
+    }
+  ]
+}
